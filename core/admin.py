@@ -86,10 +86,3 @@ class UserAdmin(BaseUserAdmin):
             },
         ),
     )
-
-
-# site.register(models.Autor)
-# site.register(models.Categoria)
-# site.register(models.Editora)
-# site.register(models.Livro)
-# site.register(models.User, UserAdmin)
