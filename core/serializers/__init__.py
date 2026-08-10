@@ -3,6 +3,8 @@ from .categoria import CategoriaSerializer
 from .compra import (
     CompraSerializer,
     ItensCompraSerializer,
+    CompraListSerializer,
+    ItensCompraListSerializer,
     CompraCreateUpdateSerializer,
     ItensCompraCreateUpdateSerializer,
 )
