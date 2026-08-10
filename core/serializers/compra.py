@@ -1,6 +1,16 @@
-from rest_framework.serializers import CharField, ModelSerializer, SerializerMethodField
+from django.db import transaction
+from rest_framework.serializers import (
+    CharField,
+    DecimalField,
+    ModelSerializer,
+    SerializerMethodField,
+)
 
 from core.models import Compra, ItensCompra
+
+# ============================================================================
+# ItensCompra
+# ============================================================================
 
 
 class ItensCompraCreateUpdateSerializer(ModelSerializer):
@@ -15,13 +25,17 @@ class ItensCompraListSerializer(ModelSerializer):
     class Meta:
         model = ItensCompra
         fields = ('quantidade', 'livro')
-        depth = 1
 
 
 class ItensCompraSerializer(ModelSerializer):
     titulo = CharField(source='livro.titulo', read_only=True)
     editora = CharField(source='livro.editora.nome', read_only=True)
-    preco = CharField(source='livro.preco', read_only=True)
+    preco = DecimalField(
+        source='livro.preco',
+        max_digits=7,
+        decimal_places=2,
+        read_only=True,
+    )
     capa = CharField(source='livro.capa.url', read_only=True)
 
     total = SerializerMethodField()
@@ -41,6 +55,11 @@ class ItensCompraSerializer(ModelSerializer):
         )
 
 
+# ============================================================================
+# Compra
+# ============================================================================
+
+
 class CompraCreateUpdateSerializer(ModelSerializer):
     itens = ItensCompraCreateUpdateSerializer(many=True)
 
@@ -48,17 +67,18 @@ class CompraCreateUpdateSerializer(ModelSerializer):
         model = Compra
         fields = ('usuario', 'itens')
 
+    @transaction.atomic
     def create(self, validated_data):
         itens_data = validated_data.pop('itens')
         compra = Compra.objects.create(**validated_data)
         for item_data in itens_data:
             ItensCompra.objects.create(compra=compra, **item_data)
-        compra.save()
         return compra
 
+    @transaction.atomic
     def update(self, compra, validated_data):
-        itens_data = validated_data.pop('itens', [])
-        if itens_data:
+        itens_data = validated_data.pop('itens', None)
+        if itens_data is not None:
             compra.itens.all().delete()
             for item_data in itens_data:
                 ItensCompra.objects.create(compra=compra, **item_data)
