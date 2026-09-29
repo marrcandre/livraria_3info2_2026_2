@@ -11,6 +11,7 @@ from .compra import (
 from .editora import EditoraSerializer
 from .livro import (
     LivroAlterarPrecoSerializer,
+    LivroMaisVendidoSerializer,
     LivroListSerializer,
     LivroRetrieveSerializer,
     LivroSerializer,
