@@ -7,6 +7,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from core.models import Compra, Livro
 from core.serializers import (
+    LivroAjustarEstoqueSerializer,
     LivroAlterarPrecoSerializer,
     LivroListSerializer,
     LivroMaisVendidoSerializer,
@@ -25,6 +26,25 @@ class LivroViewSet(ModelViewSet):
         elif self.action == 'retrieve':
             return LivroRetrieveSerializer
         return LivroSerializer
+
+    @action(detail=True, methods=['post'])
+    def ajustar_estoque(self, request, pk=None):
+        livro = self.get_object()
+
+        serializer = LivroAjustarEstoqueSerializer(data=request.data, context={'livro': livro})
+        serializer.is_valid(raise_exception=True)
+
+        quantidade_ajuste = serializer.validated_data['quantidade']
+        livro.quantidade += quantidade_ajuste
+        livro.save()
+
+        return Response(
+            {
+                'status': 'Quantidade ajustada com sucesso',
+                'novo_estoque': livro.quantidade
+            },
+            status=status.HTTP_200_OK
+        )
 
     @extend_schema(
         request=LivroAlterarPrecoSerializer,
